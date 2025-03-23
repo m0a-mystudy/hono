@@ -9,24 +9,27 @@ export interface Env {
 
 const router = new Hono<{ Bindings: Env }>();
 
+// データベース接続の確認
+router.use('*', async (c, next) => {
+  console.log('Database connection:', JSON.stringify(c.env.DB, null, 2));
+  await next();
+});
+
 // 全てのTodoを取得
 router.get('/', async (c) => {
   try {
-    console.log('Database connection:', c.env.DB);
     const db = drizzle(c.env.DB);
-    console.log('Database instance created');
-    const allTodos = await db
-      .select()
-      .from(todos)
-      .orderBy(todos.createdAt);
-    
-    return c.json(allTodos);
+    const result = await db.select().from(todos);
+    return c.json(result);
   } catch (error) {
     console.error('Error fetching todos:', error);
-    return c.json({ 
-      error: 'Failed to fetch todos',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, 500);
+    return c.json(
+      { 
+        error: 'Failed to fetch todos', 
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      500
+    );
   }
 });
 
@@ -41,6 +44,7 @@ router.post('/', async (c) => {
       .values({
         title: body.title,
         completed: false,
+
       })
       .returning();
     
