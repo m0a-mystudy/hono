@@ -3,23 +3,26 @@
   "version": "1.0.0",
   "description": "Todo API with Hono and Drizzle",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
-    "dev": "ts-node src/index.ts",
+    "dev": "wrangler dev",
     "build": "tsc",
     "generate": "drizzle-kit generate:sqlite",
-    "start": "node dist/index.js"
+    "deploy": "wrangler deploy",
+    "migration-remote": "npx wrangler d1 migrations apply todo-db --remote",
+    "migration-local": "npx wrangler d1 migrations apply todo-db --local"
   },
   "dependencies": {
-    "@hono/node-server": "^1.8.2",
-    "better-sqlite3": "^9.4.3",
     "drizzle-orm": "^0.29.5",
-    "hono": "^4.1.2"
+    "hono": "^4.1.2",
+    "@libsql/client": "^0.5.0",
+    "drizzle-kit": "^0.20.14",
+    "better-sqlite3": "^9.4.3"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.9",
+    "@cloudflare/workers-types": "^4.20240208.0",
     "@types/node": "^20.11.28",
-    "drizzle-kit": "^0.20.14",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.4.2"
+    "typescript": "^5.4.2",
+    "wrangler": "^4.4.0"
   }
 } 
