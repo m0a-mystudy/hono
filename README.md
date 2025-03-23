@@ -1,6 +1,10 @@
 # Hono + Drizzle + Cloudflare D1 Todo App
 
 HonoとDrizzleを使用して、Cloudflare D1上で動作するTodoアプリケーションを実装しました。
+以下から遊べます。(ユーザの概念なし)
+
+https://hono-drizzle-todo.abe00makoto.workers.dev/
+
 
 ## 技術スタック
 
