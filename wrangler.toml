@@ -17,4 +17,8 @@ dir = "drizzle"
 
 [build.upload]
 format = "modules"
-main = "./src/index.ts" 
+main = "./src/index.ts"
+
+[assets]
+directory = "dist/client"
+binding = "ASSETS" 
