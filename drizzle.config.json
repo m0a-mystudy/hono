@@ -1,0 +1,8 @@
+{
+  "out": "./drizzle",
+  "schema": "./src/db/schema.ts",
+  "driver": "better-sqlite",
+  "dbCredentials": {
+    "url": "./todo.db"
+  }
+} 

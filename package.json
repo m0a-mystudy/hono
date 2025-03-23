@@ -1,0 +1,25 @@
+{
+  "name": "hono-drizzle-todo",
+  "version": "1.0.0",
+  "description": "Todo API with Hono and Drizzle",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "generate": "drizzle-kit generate:sqlite",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.8.2",
+    "better-sqlite3": "^9.4.3",
+    "drizzle-orm": "^0.29.5",
+    "hono": "^4.1.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.9",
+    "@types/node": "^20.11.28",
+    "drizzle-kit": "^0.20.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.2"
+  }
+} 
