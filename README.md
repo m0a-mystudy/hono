@@ -1,11 +1,19 @@
-# Hono + Drizzle Todo API
+# Hono + Drizzle + Cloudflare D1 Todo API
 
-HonoとDrizzle ORMを使用したTodo APIの実装例です。
+HonoとDrizzleを使用して、Cloudflare D1上で動作するTodo APIを実装しました。
+
+## 技術スタック
+
+- [Hono](https://hono.dev/) - 高速なWebフレームワーク
+- [Drizzle ORM](https://orm.drizzle.team/) - 型安全なORM
+- [Cloudflare D1](https://developers.cloudflare.com/d1/) - SQLiteベースのデータベース
+- [TypeScript](https://www.typescriptlang.org/) - 型安全なJavaScript
 
 ## 必要要件
 
 - Node.js (v16以上)
 - npm (v7以上)
+- Cloudflareアカウント
 
 ## セットアップ
 
@@ -20,27 +28,15 @@ cd <repository-name>
 npm install
 ```
 
-3. 環境構築
+3. Cloudflare D1データベースの作成
 ```bash
-# TypeScriptの設定
-npm init -y
-npm install hono @hono/node-server drizzle-orm better-sqlite3
-npm install -D typescript ts-node @types/better-sqlite3 drizzle-kit @types/node
-
-# package.jsonにスクリプトを追加
-{
-  "scripts": {
-    "dev": "ts-node src/index.ts",
-    "build": "tsc",
-    "generate": "drizzle-kit generate:sqlite",
-    "start": "node dist/index.js"
-  }
-}
+npx wrangler d1 create todo-db
 ```
 
 4. マイグレーションの実行
 ```bash
 npm run generate
+npx wrangler d1 migrations apply todo-db
 ```
 
 5. 開発サーバーの起動
@@ -48,38 +44,62 @@ npm run generate
 npm run dev
 ```
 
-## API エンドポイント
-
-### GET /api/todos
-全てのTodoを取得します。
-
+6. デプロイ
 ```bash
-curl http://localhost:3000/api/todos
+npm run deploy
 ```
 
-### POST /api/todos
-新しいTodoを作成します。
+## APIの使用方法
 
+### 1. 全てのTodoを取得
 ```bash
-curl -X POST http://localhost:3000/api/todos \
+curl https://hono-drizzle-todo.abe00makoto.workers.dev/api/todos
+```
+
+### 2. 新しいTodoを作成
+```bash
+curl -X POST https://hono-drizzle-todo.abe00makoto.workers.dev/api/todos \
   -H "Content-Type: application/json" \
-  -d '{"title": "買い物をする"}'
+  -d '{"title": "新しいタスク"}'
 ```
 
-### PUT /api/todos/:id
-指定したIDのTodoを更新します。
-
+### 3. Todoを更新
 ```bash
-curl -X PUT http://localhost:3000/api/todos/1 \
+curl -X PUT https://hono-drizzle-todo.abe00makoto.workers.dev/api/todos/1 \
   -H "Content-Type: application/json" \
   -d '{"completed": true}'
 ```
 
-### DELETE /api/todos/:id
-指定したIDのTodoを削除します。
-
+### 4. Todoを削除
 ```bash
-curl -X DELETE http://localhost:3000/api/todos/1
+curl -X DELETE https://hono-drizzle-todo.abe00makoto.workers.dev/api/todos/1
 ```
 
-## プロジェクト構造 
+## データベーススキーマ
+
+```sql
+CREATE TABLE todos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+  title TEXT NOT NULL,
+  completed BOOLEAN DEFAULT false NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+```
+
+## プロジェクト構造
+
+```
+.
+├── src/
+│   ├── db/
+│   │   └── schema.ts    # データベーススキーマ定義
+│   │   └── index.ts     # アプリケーションのエントリーポイント
+│   ├── routes/
+│   │   └── todos.ts     # Todo関連のルートハンドラー
+│   └── index.ts         # アプリケーションのエントリーポイント
+├── drizzle/             # マイグレーションファイル
+├── package.json         # プロジェクト設定
+├── tsconfig.json        # TypeScript設定
+└── wrangler.toml        # Cloudflare Workers設定
+```
+
