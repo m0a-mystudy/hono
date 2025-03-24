@@ -1,0 +1,38 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Hono + Drizzle Todo プロジェクト
+
+## プロジェクト概要
+このプロジェクトは、HonoフレームワークとDrizzle ORMを使用したTodoアプリケーションです。Cloudflare Workers上で動作し、SQLiteデータベースを使用しています。
+
+## 主要な技術スタック
+- バックエンド: Hono (v4.1.2)
+- データベース: SQLite + Drizzle ORM
+- フロントエンド: React + Vite
+- デプロイ: Cloudflare Workers
+
+## 主要なファイルとディレクトリ
+- `src/`: ソースコード
+- `drizzle/`: データベースマイグレーションファイル
+- `dist/`: ビルド成果物
+- `docs/`: ドキュメント
+- `scripts/`: ビルドスクリプト
+
+## 設定ファイル
+- `package.json`: プロジェクトの依存関係とスクリプト
+- `wrangler.toml`: Cloudflare Workers設定
+- `vite.config.ts`: Vite設定
+- `tsconfig.json`: TypeScript設定
+- `drizzle.config.json`: Drizzle ORM設定
+
+## 開発コマンド
+- `npm run dev`: 開発サーバー起動
+- `npm run build`: プロジェクトのビルド
+- `npm run generate`: データベースマイグレーションファイルの生成
+- `npm run deploy`: Cloudflare Workersへのデプロイ
+- `npm run dev:client`: フロントエンド開発サーバー起動
+- `npm run build:client`: フロントエンドのビルド 
