@@ -1,114 +1,58 @@
-import { useState } from 'react'
-import { QueryClient, QueryClientProvider, useMutation, useQuery } from '@tanstack/react-query'
-import type { Todo } from '../db/schema'
+import { useEffect, useState } from 'react'
+import RestApp from './rest/App'
+import TrpcApp from './trpc/App'
+import { trpc, trpcClient } from './trpc'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-const queryClient = new QueryClient()
-
-function TodoApp() {
-  const [newTodo, setNewTodo] = useState('')
-
-  const { data: todos = [] } = useQuery<Todo[]>({
-    queryKey: ['todos'],
-    queryFn: async () => {
-      const response = await fetch('/api/todos')
-      return response.json()
-    }
-  })
-
-  const addTodoMutation = useMutation({
-    mutationFn: async (title: string) => {
-      await fetch('/api/todos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title })
-      })
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 0,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
+      refetchOnWindowFocus: true,
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos'] })
-      setNewTodo('')
-    }
-  })
-
-  const toggleTodoMutation = useMutation({
-    mutationFn: async ({ id, completed }: { id: number; completed: boolean }) => {
-      await fetch(`/api/todos/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ completed })
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos'] })
-    }
-  })
-
-  const deleteTodoMutation = useMutation({
-    mutationFn: async (id: number) => {
-      await fetch(`/api/todos/${id}`, {
-        method: 'DELETE'
-      })
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['todos'] })
-    }
-  })
-
-  return (
-    <div className="todo-list">
-      <h1>TODOリスト</h1>
-      
-      <form 
-        className="todo-form"
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (newTodo.trim()) {
-            addTodoMutation.mutate(newTodo)
-          }
-        }}
-      >
-        <input
-          type="text"
-          value={newTodo}
-          onChange={(e) => setNewTodo(e.target.value)}
-          placeholder="新しいTODOを入力"
-        />
-        <button type="submit">追加</button>
-      </form>
-
-      <div className="todo-items">
-        {todos.map((todo) => (
-          <div key={todo.id} className="todo-item">
-            <input
-              type="checkbox"
-              checked={todo.completed}
-              onChange={() => 
-                toggleTodoMutation.mutate({
-                  id: todo.id,
-                  completed: !todo.completed
-                })
-              }
-            />
-            <span className={todo.completed ? 'completed' : ''}>
-              {todo.title}
-            </span>
-            <button 
-              onClick={() => deleteTodoMutation.mutate(todo.id)}
-              className="delete"
-            >
-              削除
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
+  },
+})
 
 function App() {
+  const [client, setClient] = useState<'rest' | 'trpc'>('rest')
+
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    const clientParam = url.searchParams.get('client')
+    if (clientParam === 'trpc') {
+      setClient('trpc')
+    }
+  }, [])
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <TodoApp />
-    </QueryClientProvider>
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <div>
+          <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+            <a 
+              href="?client=rest" 
+              style={{ 
+                marginRight: '10px',
+                color: client === 'rest' ? 'blue' : 'black'
+              }}
+            >
+              REST API
+            </a>
+            <a 
+              href="?client=trpc"
+              style={{ 
+                color: client === 'trpc' ? 'blue' : 'black'
+              }}
+            >
+              tRPC
+            </a>
+          </div>
+          {client === 'rest' ? <RestApp /> : <TrpcApp />}
+        </div>
+      </QueryClientProvider>
+    </trpc.Provider>
   )
 }
 
