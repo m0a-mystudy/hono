@@ -109,12 +109,16 @@ CREATE TABLE todos (
 
 ## API仕様
 
-### 1. 全てのTodoを取得
+アプリケーションは2つのAPIエンドポイントを提供しています：
+
+### REST API
+
+#### 1. 全てのTodoを取得
 ```bash
 GET /api/todos
 ```
 
-### 2. 新しいTodoを作成
+#### 2. 新しいTodoを作成
 ```bash
 POST /api/todos
 Content-Type: application/json
@@ -124,7 +128,7 @@ Content-Type: application/json
 }
 ```
 
-### 3. Todoを更新
+#### 3. Todoを更新
 ```bash
 PUT /api/todos/:id
 Content-Type: application/json
@@ -134,8 +138,55 @@ Content-Type: application/json
 }
 ```
 
-### 4. Todoを削除
+#### 4. Todoを削除
 ```bash
 DELETE /api/todos/:id
 ```
+
+### Hono RPC API
+
+HonoのRPC機能を使用した型安全なAPI通信も実装しています。
+
+#### エンドポイント
+- `/rpc/todo/getAll` - 全てのTodoを取得
+- `/rpc/todo/create` - 新しいTodoを作成
+- `/rpc/todo/update` - Todoを更新
+- `/rpc/todo/delete` - Todoを削除
+
+#### クライアントの使用例
+```typescript
+// クライアントの初期化
+const client = hc<API>('/rpc')
+
+// Todoの取得
+const todos = await client.todo.getAll.$get()
+
+// Todoの作成
+await client.todo.create.$post({
+  json: { title: "新しいタスク" }
+})
+
+// Todoの更新
+await client.todo.update.$post({
+  json: { id: 1, completed: true }
+})
+
+// Todoの削除
+await client.todo.delete.$post({
+  json: { id: 1 }
+})
+```
+
+#### 特徴
+- エンドツーエンドの型安全性
+- 自動補完サポート
+- クライアント側での型推論
+- 軽量なRPCクライアント
+
+## クライアントの切り替え
+アプリケーションはREST APIとHono RPC APIの両方をサポートしています。
+URLパラメータで使用するクライアントを切り替えることができます：
+
+- REST API: `/?client=rest`
+- Hono RPC: `/?client=rpc`
 

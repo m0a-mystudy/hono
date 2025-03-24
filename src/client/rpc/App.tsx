@@ -2,6 +2,10 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Todo } from '../../db/schema'
 
+// APIのベースURL
+const API_BASE = import.meta.env.DEV ? 'http://localhost:8787' : '';
+const RPC_BASE = `${API_BASE}/rpc/todo`;
+
 function TodoApp() {
   const [newTodo, setNewTodo] = useState('')
   const queryClient = useQueryClient()
@@ -9,18 +13,23 @@ function TodoApp() {
   const { data: todos = [] } = useQuery<Todo[]>({
     queryKey: ['todos'],
     queryFn: async () => {
-      const response = await fetch('/api/todos')
-      return response.json()
+      const response = await fetch(`${RPC_BASE}/getAll`)
+      const data = await response.json() as Todo[]
+      return data
     }
   })
 
   const addTodoMutation = useMutation({
     mutationFn: async (title: string) => {
-      await fetch('/api/todos', {
+      const response = await fetch(`${RPC_BASE}/create`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title }),
       })
+      const data = await response.json() as Todo
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] })
@@ -29,12 +38,16 @@ function TodoApp() {
   })
 
   const toggleTodoMutation = useMutation({
-    mutationFn: async ({ id, completed }: { id: number; completed: boolean }) => {
-      await fetch(`/api/todos/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ completed })
+    mutationFn: async ({ id, completed }: { id: number, completed: boolean }) => {
+      const response = await fetch(`${RPC_BASE}/update`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id, completed }),
       })
+      const data = await response.json() as Todo
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] })
@@ -43,9 +56,15 @@ function TodoApp() {
 
   const deleteTodoMutation = useMutation({
     mutationFn: async (id: number) => {
-      await fetch(`/api/todos/${id}`, {
-        method: 'DELETE'
+      const response = await fetch(`${RPC_BASE}/delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id }),
       })
+      const data = await response.json() as Todo
+      return data
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] })
@@ -54,14 +73,14 @@ function TodoApp() {
 
   return (
     <div className="todo-list">
-      <h1>TODOリスト (REST API)</h1>
+      <h1>TODOリスト (Hono RPC)</h1>
       
       <form 
         className="todo-form"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault()
           if (newTodo.trim()) {
-            addTodoMutation.mutate(newTodo)
+            await addTodoMutation.mutateAsync(newTodo)
           }
         }}
       >
@@ -80,18 +99,20 @@ function TodoApp() {
             <input
               type="checkbox"
               checked={todo.completed}
-              onChange={() => 
-                toggleTodoMutation.mutate({
+              onChange={async () => {
+                await toggleTodoMutation.mutateAsync({
                   id: todo.id,
                   completed: !todo.completed
                 })
-              }
+              }}
             />
             <span className={todo.completed ? 'completed' : ''}>
               {todo.title}
             </span>
             <button 
-              onClick={() => deleteTodoMutation.mutate(todo.id)}
+              onClick={async () => {
+                await deleteTodoMutation.mutateAsync(todo.id)
+              }}
               className="delete"
             >
               削除

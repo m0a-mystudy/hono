@@ -1,58 +1,43 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import RestApp from './rest/App'
-import TrpcApp from './trpc/App'
-import { trpc, trpcClient } from './trpc'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 0,
-      refetchOnMount: true,
-      refetchOnReconnect: true,
-      refetchOnWindowFocus: true,
-    },
-  },
-})
+import RpcApp from './rpc/App'
 
 function App() {
-  const [client, setClient] = useState<'rest' | 'trpc'>('rest')
-
-  useEffect(() => {
-    const url = new URL(window.location.href)
-    const clientParam = url.searchParams.get('client')
-    if (clientParam === 'trpc') {
-      setClient('trpc')
-    }
-  }, [])
+  const [activeTab, setActiveTab] = useState<'rest' | 'rpc'>('rest')
 
   return (
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        <div>
-          <div style={{ marginBottom: '20px', textAlign: 'center' }}>
-            <a 
-              href="?client=rest" 
-              style={{ 
-                marginRight: '10px',
-                color: client === 'rest' ? 'blue' : 'black'
-              }}
-            >
-              REST API
-            </a>
-            <a 
-              href="?client=trpc"
-              style={{ 
-                color: client === 'trpc' ? 'blue' : 'black'
-              }}
-            >
-              tRPC
-            </a>
-          </div>
-          {client === 'rest' ? <RestApp /> : <TrpcApp />}
-        </div>
-      </QueryClientProvider>
-    </trpc.Provider>
+    <div>
+      <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+        <button 
+          onClick={() => setActiveTab('rest')}
+          style={{ 
+            marginRight: '10px',
+            padding: '8px 16px',
+            backgroundColor: activeTab === 'rest' ? '#4CAF50' : '#f0f0f0',
+            color: activeTab === 'rest' ? 'white' : 'black',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          REST API
+        </button>
+        <button 
+          onClick={() => setActiveTab('rpc')}
+          style={{ 
+            padding: '8px 16px',
+            backgroundColor: activeTab === 'rpc' ? '#4CAF50' : '#f0f0f0',
+            color: activeTab === 'rpc' ? 'white' : 'black',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Hono RPC
+        </button>
+      </div>
+      {activeTab === 'rest' ? <RestApp /> : <RpcApp />}
+    </div>
   )
 }
 
