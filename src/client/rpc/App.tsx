@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Todo } from '../../db/schema'
+import { hc } from 'hono/client'
+import type { AppType } from '../../routes/rpc'
 
 // APIのベースURL
 const API_BASE = import.meta.env.DEV ? 'http://localhost:8787' : '';
-const RPC_BASE = `${API_BASE}/rpc/todo`;
+
+// RPCクライアントの生成
+const client = hc<AppType>(`${API_BASE}/rpc/todo`)
 
 function TodoApp() {
   const [newTodo, setNewTodo] = useState('')
@@ -13,23 +17,17 @@ function TodoApp() {
   const { data: todos = [] } = useQuery<Todo[]>({
     queryKey: ['todos'],
     queryFn: async () => {
-      const response = await fetch(`${RPC_BASE}/getAll`)
-      const data = await response.json() as Todo[]
-      return data
+      const response = await client.getAll.$get()
+      return response.json()
     }
   })
 
   const addTodoMutation = useMutation({
     mutationFn: async (title: string) => {
-      const response = await fetch(`${RPC_BASE}/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ title }),
+      const response = await client.create.$post({
+        json: { title }
       })
-      const data = await response.json() as Todo
-      return data
+      return response.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] })
@@ -39,15 +37,10 @@ function TodoApp() {
 
   const toggleTodoMutation = useMutation({
     mutationFn: async ({ id, completed }: { id: number, completed: boolean }) => {
-      const response = await fetch(`${RPC_BASE}/update`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id, completed }),
+      const response = await client.update.$post({
+        json: { id, completed }
       })
-      const data = await response.json() as Todo
-      return data
+      return response.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] })
@@ -56,15 +49,10 @@ function TodoApp() {
 
   const deleteTodoMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`${RPC_BASE}/delete`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id }),
+      const response = await client.delete.$post({
+        json: { id }
       })
-      const data = await response.json() as Todo
-      return data
+      return response.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] })
