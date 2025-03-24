@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { eq } from 'drizzle-orm'
-import { todos } from '../db/schema'
+import { todos, type Todo } from '../db/schema'
 import { DrizzleD1Database } from 'drizzle-orm/d1'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
@@ -16,12 +16,6 @@ type HonoEnv = {
   }
 }
 
-type Schema = {
-  'json': { in: z.infer<typeof createTodoSchema | typeof updateTodoSchema | typeof deleteTodoSchema> }
-}
-
-const app = new Hono<HonoEnv, Schema>()
-
 // RPCのスキーマ定義
 const createTodoSchema = z.object({
   title: z.string().min(1)
@@ -36,19 +30,18 @@ const deleteTodoSchema = z.object({
   id: z.number()
 })
 
+const app = new Hono<HonoEnv>()
 // RPCエンドポイント
-app.get('/getAll', async (c) => {
+const routes = app.get('/getAll', async (c) => {
   const result = await c.var.db.select().from(todos).all()
-  return c.json(result)
-})
-
-app.post('/create', zValidator('json', createTodoSchema), async (c) => {
+  return c.json(result, 200)
+}).
+post('/create', zValidator('json', createTodoSchema), async (c) => {
   const { title } = c.req.valid('json')
   const result = await c.var.db.insert(todos).values({ title }).returning().get()
-  return c.json(result)
+  return c.json(result, 201)
 })
-
-app.post('/update', zValidator('json', updateTodoSchema), async (c) => {
+.post('/update', zValidator('json', updateTodoSchema), async (c) => {
   const { id, completed } = c.req.valid('json')
   const result = await c.var.db
     .update(todos)
@@ -56,17 +49,19 @@ app.post('/update', zValidator('json', updateTodoSchema), async (c) => {
     .where(eq(todos.id, id))
     .returning()
     .get()
-  return c.json(result)
+  return c.json(result, 200)
 })
-
-app.post('/delete', zValidator('json', deleteTodoSchema), async (c) => {
+.post('/delete', zValidator('json', deleteTodoSchema), async (c) => {
   const { id } = c.req.valid('json')
   const result = await c.var.db
     .delete(todos)
     .where(eq(todos.id, id))
     .returning()
     .get()
-  return c.json(result)
+  return c.json(result, 200)
 })
 
-export default app 
+
+// クライアント生成用の型
+export type AppType = typeof routes
+export default routes 
