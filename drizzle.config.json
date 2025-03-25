@@ -1,8 +1,0 @@
-{
-  "out": "./drizzle",
-  "schema": "./src/db/schema.ts",
-  "driver": "d1",
-  "dbCredentials": {
-    "url": "./todo.db"
-  }
-} 

@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "build": "tsc",
-    "generate": "drizzle-kit generate:sqlite",
+    "generate": "drizzle-kit generate",
     "deploy": "wrangler deploy",
     "migration-remote": "npx wrangler d1 migrations apply todo-db --remote",
     "migration-local": "npx wrangler d1 migrations apply todo-db --local",
@@ -18,10 +18,8 @@
   "dependencies": {
     "@hono/zod-validator": "^0.4.3",
     "@tanstack/react-query": "^5.69.0",
-    "@trpc/client": "^11.0.0",
-    "@trpc/react-query": "^11.0.0",
-    "@trpc/server": "^11.0.0",
-    "drizzle-orm": "^0.29.5",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.41.0",
     "hono": "^4.7.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -34,6 +32,7 @@
     "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^4.2.0",
     "drizzle-kit": "^0.30.5",
+    "tsx": "^4.19.3",
     "typescript": "^5.4.2",
     "wrangler": "^4.4.0"
   }
